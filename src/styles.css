@@ -1,0 +1,173 @@
+:root {
+  color: #10221b;
+  background: #eef3ef;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button {
+  border: 0;
+  border-radius: 0.7rem;
+  padding: 0.75rem 1rem;
+  color: white;
+  background: #146b4b;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.shell {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 3rem 0;
+}
+
+.topbar,
+.workspace,
+.tabs,
+.state-panel dl div,
+.actions {
+  display: flex;
+  align-items: center;
+}
+
+.topbar {
+  justify-content: space-between;
+}
+
+.eyebrow,
+.label {
+  margin: 0 0 0.35rem;
+  color: #527264;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  letter-spacing: -0.05em;
+}
+
+.connection {
+  border: 1px solid #c6d3ca;
+  border-radius: 999px;
+  padding: 0.6rem 0.9rem;
+  color: #6d5540;
+  background: #fffaf2;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.tabs {
+  gap: 0.35rem;
+  margin: 2.5rem 0 1rem;
+  overflow-x: auto;
+}
+
+.tabs button {
+  color: #527264;
+  background: transparent;
+}
+
+.tabs button.active {
+  color: #10221b;
+  background: #d9e7dd;
+}
+
+.workspace {
+  align-items: stretch;
+  gap: 1rem;
+}
+
+.panel {
+  border: 1px solid #d8e1da;
+  border-radius: 1.2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 18px 50px rgba(25, 57, 43, 0.07);
+}
+
+.operation-panel {
+  flex: 1 1 65%;
+}
+
+.operation-panel p:not(.label) {
+  max-width: 62ch;
+  color: #527264;
+  line-height: 1.65;
+}
+
+.actions {
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.actions .secondary {
+  color: #146b4b;
+  background: #e1eee5;
+}
+
+.state-panel {
+  flex: 1 1 35%;
+}
+
+.state-panel dl {
+  margin: 0;
+}
+
+.state-panel dl div {
+  justify-content: space-between;
+  border-bottom: 1px solid #e4ebe6;
+  padding: 0.9rem 0;
+}
+
+.state-panel dl div:last-child {
+  border-bottom: 0;
+}
+
+.state-panel dt {
+  color: #527264;
+}
+
+.state-panel dd {
+  margin: 0;
+  font-weight: 800;
+}
+
+@media (max-width: 720px) {
+  .shell {
+    padding: 1.5rem 0;
+  }
+
+  .topbar,
+  .workspace {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .connection {
+    align-self: flex-start;
+    margin-top: 1rem;
+  }
+}
+
