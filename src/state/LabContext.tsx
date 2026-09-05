@@ -61,10 +61,10 @@ interface LabContextValue extends LabData {
   importReport(report: ExperimentReport): Promise<void>
 }
 
-function initialData(): LabData {
+function initialData(source: DatabaseState['source'] = import.meta.env.VITE_LAB_API === 'live' ? 'live' : 'mock'): LabData {
   return {
     state: {
-      source: 'mock',
+      source,
       connection: 'closed',
       path: '/tmp/tinylsm-lab/session-demo',
       options: structuredClone(defaultOptions),
@@ -83,9 +83,9 @@ function initialData(): LabData {
         recoveryExperiments: false,
       },
     },
-    storage: { source: 'mock', files: [], totalBytes: 0, hasMore: false },
+    storage: { source, files: [], totalBytes: 0, hasMore: false },
     metrics: {
-      source: 'mock',
+      source,
       measuredAt: '2026-09-04T09:00:00.000Z',
       operationCounts: { put: 0, get: 0, delete: 0, scan: 0, compact: 0 },
       errorCount: 0,
