@@ -13,8 +13,16 @@ npm test -- --run
 npm run build
 ```
 
-Start `tinylsm_lab_server` from the parent repository first, then open the Vite
-URL and create a live session. Omit `VITE_LAB_API=live` to use Mock mode.
+For the packaged live Lab, run this from the parent repository instead:
+
+```sh
+git submodule update --init tools/lab_web
+./run lab
+```
+
+It builds the UI with `VITE_LAB_API=live` and serves it and the loopback API
+from one local process. Start `tinylsm_lab_server` from the parent repository
+first when using Vite separately. Omit `VITE_LAB_API=live` to use Mock mode.
 
 - **Playground**: Put, Get, Delete, Scan, Compact, text/Hex/Base64 input,
   state diffs, batch step/run/stop and replay.
@@ -22,10 +30,11 @@ URL and create a live session. Omit `VITE_LAB_API=live` to use Mock mode.
   decoding and range hex are a Goal 3 boundary.
 - **Timeline**: filterable bounded event log from the C++ session. Resource and
   latency aggregation are a Goal 3 boundary.
-- **Workload**: Mock supports the deterministic demonstration; Live marks it
-  unavailable until the Goal 3 reference-model runner exists.
-- **Recovery**: Live marks all destructive scenarios unavailable until the
-  Goal 4 sandbox worker exists.
+- **Workload**: seeded server-side reference-model validation with bounded
+  detailed history and aggregate metrics.
+- **Recovery**: preview and run three server-owned sandbox scenarios: no-Close
+  worker exit, WAL-tail truncation, and Manifest CRC corruption. Reset removes
+  only those sandboxes.
 - **Reports**: JSON export/import, reproduction information and bounded
   IndexedDB report retention.
 
@@ -60,9 +69,9 @@ only preferences plus the eight most recent reports in IndexedDB.
 
 ## Current boundary
 
-Goal 2 implements the C++ Lab Server, copied diagnostic state, serialized
-basic operations, real file listing, bounded operation/events, and SSE replay.
-The server listens only on loopback and caps request bodies at 8 MiB. The
-following remain deliberately unavailable: paged Manifest/WAL/SSTable decoding,
-raw file ranges, process RSS/CPU, deterministic workloads, and destructive
-recovery workers. Vite proxies `/api` to `http://127.0.0.1:8080`.
+Goal 4 completes the local Lab workflow: paged storage decoding, bounded
+resource and latency observations, deterministic workloads, and destructive
+recovery scenarios all execute in the C++ server. The server listens only on
+loopback and caps JSON request bodies at 8 MiB. Browser clients select scenario
+identifiers only; the server creates and validates every mutable sandbox path.
+Vite proxies `/api` to `http://127.0.0.1:8080`.

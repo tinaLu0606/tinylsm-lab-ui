@@ -25,7 +25,7 @@ export function WorkloadPage() {
   return (
     <div className="page-stack">
       <section className="hero-panel">
-        <div><p className="panel-kicker">Deterministic model experiment</p><h2>Workload runner</h2><p>{state.source === 'live' ? 'The live session is connected, but deterministic workload execution and its reference model arrive in Goal 3.' : 'Goal 1 simulates execution; reference-map validation becomes authoritative with the C++ backend.'}</p></div>
+        <div><p className="panel-kicker">Deterministic model experiment</p><h2>Workload runner</h2><p>{state.source === 'live' ? 'The C++ server generates the seeded operation stream and validates the final ordered Scan against its reference map.' : 'Goal 1 simulates execution; reference-map validation becomes authoritative with the C++ backend.'}</p></div>
         <Badge tone={active ? 'info' : workload.status === 'completed' ? 'success' : 'warning'}>{workload.status}</Badge>
       </section>
 
@@ -43,16 +43,16 @@ export function WorkloadPage() {
           </div>
           <fieldset className="ratio-fieldset"><legend>Operation mix</legend><label>Put<input disabled={active} max="100" min="0" onChange={(event) => setNumber('putRatio', event.target.value)} type="number" value={config.putRatio} />%</label><label>Get<input disabled={active} max="100" min="0" onChange={(event) => setNumber('getRatio', event.target.value)} type="number" value={config.getRatio} />%</label><label>Delete<input disabled={active} max="100" min="0" onChange={(event) => setNumber('deleteRatio', event.target.value)} type="number" value={config.deleteRatio} />%</label><Badge tone={ratioTotal === 100 ? 'success' : 'danger'}>{ratioTotal}% total</Badge></fieldset>
           <div className="button-row">
-            {!active && <button disabled={state.source === 'live' || state.connection !== 'open' || ratioTotal !== 100} onClick={() => void startWorkload(config)} type="button">Start workload</button>}
+            {!active && <button disabled={state.connection !== 'open' || ratioTotal !== 100} onClick={() => void startWorkload(config)} type="button">Start workload</button>}
             {workload.status === 'running' && <button className="button-secondary" onClick={() => void pauseWorkload()} type="button">Pause</button>}
             {workload.status === 'paused' && <button onClick={() => void resumeWorkload()} type="button">Resume</button>}
             {active && <button className="button-danger" onClick={() => void cancelWorkload()} type="button">Cancel</button>}
           </div>
-          {state.source === 'live' ? <p className="form-hint">Live workload execution is unavailable until Goal 3.</p> : state.connection !== 'open' && <p className="form-hint">Open a mock database session before starting.</p>}
+          {state.connection !== 'open' && <p className="form-hint">Open a {state.source} database session before starting.</p>}
         </section>
 
         <section className="panel workload-progress">
-          <div className="section-heading"><div><p className="panel-kicker">Run {workload.id}</p><h3>{workload.status === 'idle' ? 'No run started' : `${progress}% complete`}</h3></div><Badge tone={state.source === 'live' ? 'neutral' : 'warning'}>{state.source === 'live' ? 'Unavailable' : 'Mock oracle'}</Badge></div>
+          <div className="section-heading"><div><p className="panel-kicker">Run {workload.id}</p><h3>{workload.status === 'idle' ? 'No run started' : `${progress}% complete`}</h3></div><Badge tone={state.source === 'live' ? 'success' : 'warning'}>{state.source === 'live' ? 'C++ reference map' : 'Mock oracle'}</Badge></div>
           <div className="large-progress"><span style={{ width: `${progress}%` }} /></div>
           <dl className="metadata-grid workload-stats">
             <div><dt>Completed</dt><dd>{workload.completedOperations} / {workload.config.operationCount}</dd></div>
@@ -64,7 +64,7 @@ export function WorkloadPage() {
           </dl>
           <div className={`oracle-result ${workload.mismatch ? 'oracle-failed' : ''}`}>
             <span aria-hidden="true">{workload.mismatch ? '!' : '✓'}</span>
-            <div><strong>{workload.mismatch ? 'First mismatch captured' : state.source === 'live' ? 'Reference model unavailable' : 'No model mismatch observed'}</strong><p>{workload.mismatch ? `${workload.mismatch.key}: expected ${workload.mismatch.expected}, received ${workload.mismatch.actual}` : state.source === 'live' ? 'Live validation is unavailable until Goal 3.' : 'Mock mode uses a deterministic model.'}</p></div>
+            <div><strong>{workload.mismatch ? 'First mismatch captured' : 'No model mismatch observed'}</strong><p>{workload.mismatch ? `${workload.mismatch.key}: expected ${workload.mismatch.expected}, received ${workload.mismatch.actual}` : state.source === 'live' ? 'The final full Scan matched the server-side ordered reference map.' : 'Mock mode uses a deterministic model.'}</p></div>
           </div>
           <div className="truth-note"><strong>Performance mode</strong><p>Detailed per-operation persistence will be disabled for live high-rate workloads. The mock retains bounded UI evidence only.</p></div>
         </section>

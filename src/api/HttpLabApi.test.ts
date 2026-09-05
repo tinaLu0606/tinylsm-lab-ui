@@ -39,4 +39,23 @@ describe('HttpLabApi', () => {
 
     await expect(api.open('/tmp/bad', defaultOptions)).rejects.toThrow('CORRUPTION: load MANIFEST failed')
   })
+
+  it('uses only scenario identifiers for the recovery preview and run contract', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'run-1', scenarioId: 'unclean-shutdown', status: 'preview' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'run-1', scenarioId: 'unclean-shutdown', status: 'passed' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => [] })
+    vi.stubGlobal('fetch', fetchMock)
+    const api = new HttpLabApi('http://127.0.0.1:8080')
+
+    await api.previewRecovery('unclean-shutdown')
+    await api.runRecovery('unclean-shutdown')
+    await api.resetRecovery()
+
+    expect(fetchMock).toHaveBeenNthCalledWith(1, 'http://127.0.0.1:8080/api/recovery/experiments', expect.objectContaining({
+      method: 'POST', body: JSON.stringify({ scenarioId: 'unclean-shutdown' }),
+    }))
+    expect(fetchMock).toHaveBeenNthCalledWith(2, 'http://127.0.0.1:8080/api/recovery/experiments/run-1/run', expect.objectContaining({ method: 'POST' }))
+    expect(fetchMock).toHaveBeenNthCalledWith(3, 'http://127.0.0.1:8080/api/recovery/reset', expect.objectContaining({ method: 'POST' }))
+  })
 })

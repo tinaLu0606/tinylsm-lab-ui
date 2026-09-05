@@ -23,18 +23,6 @@ interface ErrorBody {
   status?: { code?: string; message?: string; phase?: string }
 }
 
-function unavailableWorkload(): WorkloadRun {
-  return { id: 'workload-unavailable', status: 'idle', config: structuredClone(defaultWorkload), completedOperations: 0 }
-}
-
-function unavailableRecovery(): RecoveryScenario[] {
-  return [
-    { id: 'unclean-shutdown', name: 'Unclean shutdown', description: 'Requires the Goal 4 controlled worker.', expectedOutcome: 'Unavailable in the live Goal 2 server.', mutation: 'No files are changed.', available: false },
-    { id: 'truncated-wal', name: 'Truncated WAL tail', description: 'Requires the Goal 4 sandbox copy.', expectedOutcome: 'Unavailable in the live Goal 2 server.', mutation: 'No files are changed.', available: false },
-    { id: 'crc-corruption', name: 'CRC corruption', description: 'Requires the Goal 4 sandbox copy.', expectedOutcome: 'Unavailable in the live Goal 2 server.', mutation: 'No files are changed.', available: false },
-  ]
-}
-
 function base64(value?: EncodedBytes): EncodedBytes | undefined {
   if (!value)
     return undefined
@@ -62,7 +50,8 @@ function wireRequest(request: OperationRequest): Record<string, unknown> {
 /** A transport-only LabApi. All state and operation outcomes come from C++. */
 export class HttpLabApi implements LabApi {
   private readonly baseUrl: string
-  private workload = unavailableWorkload()
+  private workload: WorkloadRun = { id: 'workload-idle', status: 'idle', config: structuredClone(defaultWorkload), completedOperations: 0 }
+  private recoveryRuns: RecoveryRun[] = []
 
   constructor(baseUrl = '') {
     this.baseUrl = baseUrl.replace(/\/$/, '')
@@ -105,7 +94,8 @@ export class HttpLabApi implements LabApi {
   }
 
   async getEvents(): Promise<LabEvent[]> {
-    return this.request('/api/events')
+    const page = await this.request<{ events: LabEvent[] }>('/api/events?limit=200')
+    return page.events
   }
 
   subscribe(listener: () => void): Unsubscribe {
@@ -114,44 +104,52 @@ export class HttpLabApi implements LabApi {
     return () => source.close()
   }
 
-  async startWorkload(_config: WorkloadConfig): Promise<WorkloadRun> {
-    throw new Error('Live workloads are not implemented until Goal 3')
+  async startWorkload(config: WorkloadConfig): Promise<WorkloadRun> {
+    return this.setWorkload(await this.request('/api/workloads', { method: 'POST', body: config }))
   }
 
   async pauseWorkload(): Promise<WorkloadRun> {
-    throw new Error('Live workloads are not implemented until Goal 3')
+    return this.setWorkload(await this.request(`/api/workloads/${this.workload.id}/pause`, { method: 'POST', body: {} }))
   }
 
   async resumeWorkload(): Promise<WorkloadRun> {
-    throw new Error('Live workloads are not implemented until Goal 3')
+    return this.setWorkload(await this.request(`/api/workloads/${this.workload.id}/resume`, { method: 'POST', body: {} }))
   }
 
   async cancelWorkload(): Promise<WorkloadRun> {
-    throw new Error('Live workloads are not implemented until Goal 3')
+    return this.setWorkload(await this.request(`/api/workloads/${this.workload.id}/cancel`, { method: 'POST', body: {} }))
   }
 
   async getWorkload(): Promise<WorkloadRun> {
-    return structuredClone(this.workload)
+    return this.setWorkload(await this.request('/api/workloads/current'))
   }
 
   async listRecoveryScenarios(): Promise<RecoveryScenario[]> {
-    return unavailableRecovery()
+    return this.request('/api/recovery/scenarios')
   }
 
-  async previewRecovery(_scenarioId: RecoveryScenarioId): Promise<RecoveryRun> {
-    throw new Error('Live recovery experiments are not implemented until Goal 4')
+  async previewRecovery(scenarioId: RecoveryScenarioId): Promise<RecoveryRun> {
+    return this.setRecoveryRun(await this.request('/api/recovery/experiments', {
+      method: 'POST', body: { scenarioId },
+    }))
   }
 
-  async runRecovery(_scenarioId: RecoveryScenarioId): Promise<RecoveryRun> {
-    throw new Error('Live recovery experiments are not implemented until Goal 4')
+  async runRecovery(scenarioId: RecoveryScenarioId): Promise<RecoveryRun> {
+    const preview = [...this.recoveryRuns].reverse().find((run) => run.scenarioId === scenarioId && run.status === 'preview')
+    if (!preview)
+      throw new Error('Create a recovery preview before running it')
+    return this.setRecoveryRun(await this.request(`/api/recovery/experiments/${preview.id}/run`, { method: 'POST', body: {} }))
   }
 
   async resetRecovery(): Promise<RecoveryRun[]> {
+    await this.request('/api/recovery/reset', { method: 'POST', body: {} })
+    this.recoveryRuns = []
     return []
   }
 
   async getRecoveryRuns(): Promise<RecoveryRun[]> {
-    return []
+    this.recoveryRuns = await this.request('/api/recovery/experiments')
+    return structuredClone(this.recoveryRuns)
   }
 
   async exportReport(): Promise<ExperimentReport> {
@@ -167,7 +165,7 @@ export class HttpLabApi implements LabApi {
       events,
       metrics,
       workload: await this.getWorkload(),
-      recoveryRuns: [],
+      recoveryRuns: await this.getRecoveryRuns(),
     }
   }
 
@@ -188,5 +186,19 @@ export class HttpLabApi implements LabApi {
       throw new Error(`${prefix}${detail?.message ?? `HTTP ${response.status}`}`)
     }
     return body
+  }
+
+  private setWorkload(workload: WorkloadRun): WorkloadRun {
+    this.workload = workload
+    return structuredClone(workload)
+  }
+
+  private setRecoveryRun(run: RecoveryRun): RecoveryRun {
+    const index = this.recoveryRuns.findIndex((candidate) => candidate.id === run.id)
+    if (index >= 0)
+      this.recoveryRuns[index] = run
+    else
+      this.recoveryRuns.push(run)
+    return structuredClone(run)
   }
 }

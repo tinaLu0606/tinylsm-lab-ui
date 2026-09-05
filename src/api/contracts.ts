@@ -17,7 +17,7 @@ export type EntryType = 'value' | 'tombstone'
 export type FileKind = 'manifest' | 'wal' | 'sstable' | 'temporary'
 export type FileState = 'active' | 'live' | 'obsolete' | 'orphan' | 'temporary'
 export type EventLevel = 'info' | 'success' | 'warning' | 'error'
-export type WorkloadStatus = 'idle' | 'running' | 'paused' | 'completed' | 'cancelled'
+export type WorkloadStatus = 'idle' | 'running' | 'paused' | 'completed' | 'cancelled' | 'failed'
 export type WorkloadDistribution = 'sequential' | 'uniform' | 'hotspot'
 export type RecoveryScenarioId = 'unclean-shutdown' | 'truncated-wal' | 'crc-corruption'
 
@@ -136,6 +136,7 @@ export interface WalRecordView {
   key: string
   value: string
   crc: 'ok' | 'invalid'
+  error?: LabStatus
 }
 
 export interface SstableBlockView {
@@ -146,6 +147,7 @@ export interface SstableBlockView {
   largestKey: string
   entries: ValueEntry[]
   crc: 'ok' | 'invalid'
+  error?: LabStatus
 }
 
 export interface StorageFile {
@@ -178,6 +180,10 @@ export interface MetricPoint {
   rssBytes?: number
   cpuPercent?: number
   directoryBytes: number
+  manifestBytes?: number
+  walBytes?: number
+  sstableBytes?: number
+  temporaryBytes?: number
   memtableBytes: number
 }
 
@@ -220,6 +226,7 @@ export interface WorkloadRun {
     expected: string
     actual: string
   }
+  performanceMode?: boolean
 }
 
 export interface RecoveryScenario {

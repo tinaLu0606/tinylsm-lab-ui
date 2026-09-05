@@ -60,7 +60,7 @@ function App() {
       {state.source === 'mock' ? (
         <div className="mock-disclosure"><strong>Deterministic frontend simulation</strong><span>No request reaches TinyLSM. Values marked Mock or Unavailable are never real engine measurements.</span></div>
       ) : (
-        <div className="live-disclosure"><strong>Live TinyLSM session</strong><span>State, files and operation logs come from the local C++ Lab Server. Workloads, process metrics and recovery remain unavailable in Goal 2.</span></div>
+        <div className="live-disclosure"><strong>Live TinyLSM session</strong><span>State, paged storage decoding, bounded operation logs, workload validation, process metrics and sandboxed recovery experiments come from the local C++ Lab Server.</span></div>
       )}
       <div className="app-grid">
         <nav className="primary-nav" aria-label="Lab sections">
