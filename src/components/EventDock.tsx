@@ -6,7 +6,7 @@ import { formatMicros, shortTime } from './format'
 import { VirtualList } from './VirtualList'
 
 export function EventDock() {
-  const { events } = useLab()
+  const { events, state } = useLab()
   const [open, setOpen] = useState(false)
   const [filter, setFilter] = useState('')
   const visible = useMemo(
@@ -17,7 +17,7 @@ export function EventDock() {
   return (
     <section className={`event-dock ${open ? 'event-dock-open' : ''}`} aria-label="Operation event log">
       <button className="event-dock-toggle" onClick={() => setOpen((value) => !value)} type="button">
-        <span><strong>Event log</strong><small>{events.length} retained mock events</small></span>
+        <span><strong>Event log</strong><small>{events.length} retained {state.source} events</small></span>
         <span>{open ? 'Close' : 'Open'}</span>
       </button>
       {open && (

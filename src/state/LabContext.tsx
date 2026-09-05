@@ -10,6 +10,7 @@ import {
 } from 'react'
 
 import type { LabApi } from '../api/LabApi'
+import { HttpLabApi } from '../api/HttpLabApi'
 import { MockLabApi } from '../api/MockLabApi'
 import { defaultOptions } from '../api/defaults'
 import type {
@@ -122,7 +123,7 @@ function initialData(): LabData {
 const LabContext = createContext<LabContextValue | undefined>(undefined)
 
 export function LabProvider({ children, api: suppliedApi }: PropsWithChildren<{ api?: LabApi }>) {
-  const api = useMemo(() => suppliedApi ?? new MockLabApi(), [suppliedApi])
+  const api = useMemo(() => suppliedApi ?? (import.meta.env.VITE_LAB_API === 'live' ? new HttpLabApi() : new MockLabApi()), [suppliedApi])
   const [data, setData] = useState<LabData>(initialData)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>()
@@ -205,4 +206,3 @@ export function useLab(): LabContextValue {
     throw new Error('useLab must be used inside LabProvider')
   return context
 }
-

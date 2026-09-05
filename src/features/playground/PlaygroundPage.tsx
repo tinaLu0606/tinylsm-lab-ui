@@ -124,7 +124,7 @@ export function PlaygroundPage() {
         <div>
           <p className="panel-kicker">Interactive write and read path</p>
           <h2>Operation playground</h2>
-          <p>Run one operation at a time and inspect the exact mock state transition it produces.</p>
+          <p>Run one operation at a time and inspect the exact {state.source === 'live' ? 'TinyLSM' : 'mock'} state transition it produces.</p>
         </div>
         <Badge tone={state.connection === 'open' ? 'success' : 'warning'}>
           {state.connection === 'open' ? 'READY' : 'OPEN A SESSION'}
@@ -164,7 +164,7 @@ export function PlaygroundPage() {
             )}
             {kind === 'compact' && (
               <div className="callout callout-warning">
-                Full compaction rewrites published SSTables, removes obsolete versions and drops safe tombstones. Mock mode demonstrates the transition only.
+                Full compaction rewrites published SSTables, removes obsolete versions and drops safe tombstones.
               </div>
             )}
             {batchError && <div className="inline-error" role="alert">{batchError}</div>}
@@ -186,14 +186,14 @@ export function PlaygroundPage() {
               <div className="result-meta">
                 <span><small>Operation ID</small><code>{latest.operationId}</code></span>
                 <span><small>Started</small><strong>{shortTime(latest.startedAt)}</strong></span>
-                <span><small>Mock engine latency</small><strong>{formatMicros(latest.durationMicros)}</strong></span>
+                <span><small>{state.source === 'live' ? 'Measured request duration' : 'Mock engine latency'}</small><strong>{formatMicros(latest.durationMicros)}</strong></span>
               </div>
               <p className="status-message">{latest.status.message}</p>
               {latest.value && <pre className="data-result">{latest.value.key} → {latest.value.value || '(empty value)'}</pre>}
               {latest.entries && (
                 <div className="entry-table compact-scroll">
                   {latest.entries.length === 0 ? <p className="muted-copy">The range contains no live values.</p> : latest.entries.map((entry) => (
-                    <div key={`${entry.keyBase64}-${entry.sequence}`}><code>{entry.key}</code><span>{entry.value || '(empty)'}</span><small>seq {entry.sequence}</small></div>
+                    <div key={`${entry.keyBase64}-${entry.sequence ?? 'unknown'}`}><code>{entry.key}</code><span>{entry.value || '(empty)'}</span><small>{entry.sequence === undefined ? 'sequence unavailable' : `seq ${entry.sequence}`}</small></div>
                   ))}
                 </div>
               )}

@@ -7,7 +7,7 @@ import { shortTime } from '../../components/format'
 import { useLab } from '../../state/LabContext'
 
 export function RecoveryPage() {
-  const { recoveryScenarios, recoveryRuns, previewRecovery, runRecovery, resetRecovery } = useLab()
+  const { state, recoveryScenarios, recoveryRuns, previewRecovery, runRecovery, resetRecovery } = useLab()
   const [selected, setSelected] = useState<RecoveryScenarioId>('unclean-shutdown')
   const scenario = recoveryScenarios.find((candidate) => candidate.id === selected)
   const run = recoveryRuns.find((candidate) => candidate.scenarioId === selected)
@@ -15,7 +15,7 @@ export function RecoveryPage() {
   return (
     <div className="page-stack">
       <section className="hero-panel">
-        <div><p className="panel-kicker">Sandboxed failure exploration</p><h2>Recovery Lab</h2><p>Preview every destructive action before it touches an isolated experiment copy. Goal 1 is simulation-only.</p></div>
+        <div><p className="panel-kicker">Sandboxed failure exploration</p><h2>Recovery Lab</h2><p>{state.source === 'live' ? 'The live session is connected, but sandbox workers and controlled mutations arrive in Goal 4.' : 'Preview every destructive action before it touches an isolated experiment copy. Goal 1 is simulation-only.'}</p></div>
         <Badge tone="warning">Backend unavailable</Badge>
       </section>
 
@@ -25,7 +25,7 @@ export function RecoveryPage() {
             <button className={selected === candidate.id ? 'scenario-card scenario-selected' : 'scenario-card'} key={candidate.id} onClick={() => setSelected(candidate.id)} type="button">
               <span className="scenario-index">0{recoveryScenarios.indexOf(candidate) + 1}</span>
               <span><strong>{candidate.name}</strong><small>{candidate.description}</small></span>
-              <Badge tone="warning">Simulated</Badge>
+              <Badge tone="warning">{candidate.available ? 'Available' : state.source === 'live' ? 'Unavailable' : 'Simulated'}</Badge>
             </button>
           ))}
         </section>
@@ -40,7 +40,7 @@ export function RecoveryPage() {
                 <article><span>Safety boundary</span><p>Never modify an arbitrary user path. A live backend must canonicalize a server-created copy first.</p></article>
               </div>
               {!run ? (
-                <button onClick={() => void previewRecovery(selected)} type="button">Create preview</button>
+                <button disabled={!scenario.available} onClick={() => void previewRecovery(selected)} type="button">Create preview</button>
               ) : (
                 <div className="recovery-preview">
                   <div className="callout callout-warning"><strong>Previewed sandbox</strong><code>{run.sandboxPath}</code><span>No real file has been changed in Mock mode.</span></div>
@@ -56,4 +56,3 @@ export function RecoveryPage() {
     </div>
   )
 }
-

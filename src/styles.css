@@ -298,7 +298,8 @@ h4 {
   width: auto;
 }
 
-.mock-disclosure {
+.mock-disclosure,
+.live-disclosure {
   display: flex;
   justify-content: center;
   gap: 0.55rem;
@@ -307,6 +308,11 @@ h4 {
   color: #714b1b;
   background: #fff7e9;
   font-size: 0.75rem;
+}
+
+.live-disclosure {
+  border-color: rgba(92, 198, 151, 0.42);
+  background: rgba(24, 91, 66, 0.18);
 }
 
 .app-grid {
@@ -1678,7 +1684,8 @@ h4 {
     padding: 0.85rem;
   }
 
-  .mock-disclosure {
+  .mock-disclosure,
+  .live-disclosure {
     align-items: flex-start;
     flex-direction: column;
   }

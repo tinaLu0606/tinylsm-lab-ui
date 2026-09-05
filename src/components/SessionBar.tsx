@@ -49,7 +49,7 @@ export function SessionBar() {
             </>
           ) : (
             <button disabled={loading} onClick={() => void open(path, options)} type="button">
-              Open mock session
+              Open {state.source === 'live' ? 'live' : 'mock'} session
             </button>
           )}
           <details className="options-menu">
@@ -76,16 +76,14 @@ export function SessionBar() {
                 <input checked={options.syncOnWrite} onChange={(event) => setOptions((current) => ({ ...current, syncOnWrite: event.target.checked }))} type="checkbox" />
                 Sync WAL on every write
               </label>
-              <button className="button-danger button-small" onClick={() => void reset()} type="button">
-                Reset mock data
-              </button>
+              {state.source === 'mock' && <button className="button-danger button-small" onClick={() => void reset()} type="button">Reset mock data</button>}
             </div>
           </details>
         </div>
       </div>
 
       <div className="connection-stack">
-        <Badge tone="warning">MOCK DATA</Badge>
+        <Badge tone={state.source === 'live' ? 'success' : 'warning'}>{state.source === 'live' ? 'LIVE DATA' : 'MOCK DATA'}</Badge>
         <span className={`connection-dot connection-${state.connection}`}>
           {state.connection === 'open' ? 'Session open' : 'Session closed'}
         </span>
@@ -93,4 +91,3 @@ export function SessionBar() {
     </header>
   )
 }
-

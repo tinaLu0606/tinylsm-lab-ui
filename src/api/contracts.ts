@@ -9,6 +9,7 @@ export type StatusCode =
   | 'NOT_SUPPORTED'
   | 'RESOURCE_EXHAUSTED'
   | 'CLOSED'
+  | 'INTERNAL_ERROR'
 
 export type Encoding = 'text' | 'hex' | 'base64'
 export type OperationKind = 'put' | 'get' | 'delete' | 'scan' | 'compact'
@@ -50,7 +51,7 @@ export interface TableInfo {
   largestKey: string
   minSequence: number
   maxSequence: number
-  entries: number
+  entries?: number
 }
 
 export interface DatabaseState {
@@ -91,7 +92,7 @@ export interface ValueEntry {
   value: string
   keyBase64: string
   valueBase64: string
-  sequence: number
+  sequence?: number
   type: EntryType
 }
 
@@ -256,4 +257,3 @@ export interface ExperimentReport {
 export interface Unsubscribe {
   (): void
 }
-

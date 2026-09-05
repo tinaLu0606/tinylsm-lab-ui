@@ -30,7 +30,7 @@ function downloadReport(report: ExperimentReport): void {
 }
 
 export function ReportsPage() {
-  const { operations, exportReport, importReport } = useLab()
+  const { state, operations, exportReport, importReport } = useLab()
   const [recent, setRecent] = useState<ExperimentReport[]>([])
   const [notice, setNotice] = useState<string>()
   const reproduction = useMemo(() => operations.slice().reverse().map((operation) => commandFor(operation.request)).join('\n'), [operations])
@@ -82,9 +82,9 @@ export function ReportsPage() {
 
       <div className="reports-layout">
         <section className="panel">
-          <div className="section-heading"><div><p className="panel-kicker">Current session</p><h3>Export experiment</h3></div><Badge tone="warning">Mock source</Badge></div>
+          <div className="section-heading"><div><p className="panel-kicker">Current session</p><h3>Export experiment</h3></div><Badge tone={state.source === 'live' ? 'success' : 'warning'}>{state.source} source</Badge></div>
           <p className="muted-copy">The report includes bounded operation/event history, state, metrics, workload configuration and recovery previews.</p>
-          <div className="button-row"><button onClick={() => void handleExport()} type="button">Export JSON</button><label className="button-secondary file-input-button">Import JSON<input accept="application/json,.json" onChange={(event) => void handleImport(event)} type="file" /></label></div>
+          <div className="button-row"><button onClick={() => void handleExport()} type="button">Export JSON</button><label className="button-secondary file-input-button">Import JSON<input accept="application/json,.json" disabled={state.source === 'live'} onChange={(event) => void handleImport(event)} type="file" /></label></div>
         </section>
 
         <section className="panel">
@@ -111,4 +111,3 @@ export function ReportsPage() {
     </div>
   )
 }
-

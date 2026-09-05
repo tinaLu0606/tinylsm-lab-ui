@@ -1,37 +1,37 @@
 # TinyLSM Lab UI
 
 TinyLSM Lab is a local React and TypeScript workbench for exploring a storage
-engine. Goal 1 is complete as a deterministic frontend prototype: it has a
-stable typed API boundary and a `MockLabApi`, but it does **not** read a real
-TinyLSM directory or measure a C++ process yet.
+engine. It supports two explicitly distinct transports: deterministic
+`MockLabApi` for UI work, and `HttpLabApi` for a real local TinyLSM session.
 
 ## Run and verify
 
 ```sh
 npm ci
-npm run dev
+VITE_LAB_API=live npm run dev
 npm test -- --run
 npm run build
 ```
 
-Open the Vite URL, create a mock session, then use the six workspaces:
+Start `tinylsm_lab_server` from the parent repository first, then open the Vite
+URL and create a live session. Omit `VITE_LAB_API=live` to use Mock mode.
 
 - **Playground**: Put, Get, Delete, Scan, Compact, text/Hex/Base64 input,
   state diffs, batch step/run/stop and replay.
-- **Storage**: simulated Manifest, WAL and SSTable tree; decoded metadata,
-  records, blocks, CRC results, bounded hex previews and pagination.
-- **Timeline**: filterable WAL/MemTable/flush/Manifest events and bounded
-  resource/latency charts.
-- **Workload**: seeded operation stream, ratios, distribution, rate, periodic
-  reopen, Start/Pause/Resume/Cancel and mock correctness result.
-- **Recovery**: three preview-first sandbox scenarios, clearly labelled as
-  simulations until a safe C++ backend exists.
+- **Storage**: real directory file list and Manifest references. Paged format
+  decoding and range hex are a Goal 3 boundary.
+- **Timeline**: filterable bounded event log from the C++ session. Resource and
+  latency aggregation are a Goal 3 boundary.
+- **Workload**: Mock supports the deterministic demonstration; Live marks it
+  unavailable until the Goal 3 reference-model runner exists.
+- **Recovery**: Live marks all destructive scenarios unavailable until the
+  Goal 4 sandbox worker exists.
 - **Reports**: JSON export/import, reproduction information and bounded
   IndexedDB report retention.
 
-Every simulated value is labelled `Mock`; values that need a C++ Lab Server are
-labelled `Unavailable`. This is intentional: the UI must never present mock
-state as real engine evidence.
+Every simulated value is labelled `Mock`; `Live` data comes only from the C++
+server. Values not implemented by the live backend are labelled `Unavailable`.
+This prevents mock state being presented as engine evidence.
 
 ## Architecture
 
@@ -42,20 +42,17 @@ React pages, shared components and LabContext
              LabApi interface
                   |
                   v
-   MockLabApi (current deterministic implementation)
-      |        |          |
-      |        |          +-- recovery simulations and reports
-      |        +------------- bounded events, metrics, storage snapshots
-      +---------------------- ordered key model, WAL-first writes, flushes
-
-Future: React -> HttpLabApi -> HTTP/SSE -> tinylsm_lab_server -> TinyLSM
+   MockLabApi              HttpLabApi
+      |                         |
+      |                         +-- HTTP + SSE (Live only)
+      |                                      |
+      +-- deterministic UI model      tinylsm_lab_server -> TinyLSM
 ```
 
 `src/api/contracts.ts` owns the transport-shaped types and `LabApi.ts` owns the
-frontend contract. A future `HttpLabApi` can replace `MockLabApi` without
-putting storage parsing or correctness rules into page components. Binary input
-is represented as Text, Hex or Base64; the future HTTP contract uses Base64 for
-arbitrary bytes.
+frontend contract. `HttpLabApi` converts Text/Hex/Base64 input to Base64 before
+POSTing it, surfaces structured server status codes, and refreshes through SSE
+events. It does not parse TinyLSM formats or decide correctness in React.
 
 The UI bounds operation/event histories, keeps metric ring buffers, renders
 history through a constrained scrolling surface, pages storage data, and stores
@@ -63,7 +60,9 @@ only preferences plus the eight most recent reports in IndexedDB.
 
 ## Current boundary
 
-The C++ Lab Server, HTTP/SSE adapter, real file decoder, process RSS/CPU
-metrics, worker processes and destructive fault injection are deliberately not
-implemented in this goal. Vite still reserves `/api` for the eventual server at
-`http://127.0.0.1:8080`.
+Goal 2 implements the C++ Lab Server, copied diagnostic state, serialized
+basic operations, real file listing, bounded operation/events, and SSE replay.
+The server listens only on loopback and caps request bodies at 8 MiB. The
+following remain deliberately unavailable: paged Manifest/WAL/SSTable decoding,
+raw file ranges, process RSS/CPU, deterministic workloads, and destructive
+recovery workers. Vite proxies `/api` to `http://127.0.0.1:8080`.

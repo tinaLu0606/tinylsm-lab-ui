@@ -35,7 +35,7 @@ function pageFor(section: SectionId) {
 }
 
 function App() {
-  const { error, clearError, loading } = useLab()
+  const { error, clearError, loading, state } = useLab()
   const [active, setActive] = useState<SectionId>('playground')
   const [stateCollapsed, setStateCollapsed] = useState(false)
 
@@ -57,7 +57,11 @@ function App() {
     <div className="app-shell">
       <SessionBar />
       {error && <div className="global-error" role="alert"><span><strong>Request failed</strong>{error}</span><button aria-label="Dismiss error" onClick={clearError} type="button">×</button></div>}
-      <div className="mock-disclosure"><strong>Deterministic frontend simulation</strong><span>No request reaches TinyLSM yet. Values marked Mock or Unavailable are never real engine measurements.</span></div>
+      {state.source === 'mock' ? (
+        <div className="mock-disclosure"><strong>Deterministic frontend simulation</strong><span>No request reaches TinyLSM. Values marked Mock or Unavailable are never real engine measurements.</span></div>
+      ) : (
+        <div className="live-disclosure"><strong>Live TinyLSM session</strong><span>State, files and operation logs come from the local C++ Lab Server. Workloads, process metrics and recovery remain unavailable in Goal 2.</span></div>
+      )}
       <div className="app-grid">
         <nav className="primary-nav" aria-label="Lab sections">
           {sections.map((section, index) => (
