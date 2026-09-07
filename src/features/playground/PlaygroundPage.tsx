@@ -193,7 +193,7 @@ export function PlaygroundPage() {
               {latest.entries && (
                 <div className="entry-table compact-scroll">
                   {latest.entries.length === 0 ? <p className="muted-copy">The range contains no live values.</p> : latest.entries.map((entry) => (
-                    <div key={`${entry.keyBase64}-${entry.sequence ?? 'unknown'}`}><code>{entry.key}</code><span>{entry.value || '(empty)'}</span><small>{entry.sequence === undefined ? 'sequence unavailable' : `seq ${entry.sequence}`}</small></div>
+                    <div key={entry.keyBase64}><code>{entry.key}</code><span>{entry.value || '(empty)'}</span></div>
                   ))}
                 </div>
               )}
